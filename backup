@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+export FILENAME=$APP_NAME-$APP_ENV-$(TZ=Asia/Bangkok date +%F).tar.gz
+export AWS_ACCESS_KEY_ID=$OBJECT_STORAGE_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY=$OBJECT_STORAGE_SECRET_ACCESS_KEY
+
+cd /root/
+rm -rf dump
+mongodump --host $BACKUP_MONGODB_URL -o dump
+tar zcvf $FILENAME dump
+rm -rf dump
+
+/usr/local/bin/aws s3 --endpoint-url $OBJECT_STORAGE_ENDPOINT cp $FILENAME s3://$OBJECT_STORAGE_BUCKET_NAME/$FILENAME
